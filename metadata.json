@@ -1,0 +1,6 @@
+{
+  "name": "LanMaker",
+  "description": "Notebook management system for a computer lab, similar to a cybercafe control system, tracking lending, users, and inventory.",
+  "requestFramePermissions": [],
+  "majorCapabilities": []
+}
