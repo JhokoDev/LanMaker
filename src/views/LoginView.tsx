@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { LogIn, Beaker, ShieldCheck, Globe, Loader2, Mail, Lock, UserPlus, Clock, Github } from 'lucide-react';
-import { supabase } from '../lib/supabase';
+import { LogIn, Beaker, ShieldCheck, Globe, Loader2, Mail, Lock, UserPlus, Clock } from 'lucide-react';
+import { AuthController } from '../controllers/AuthController';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { Logo } from '../components/Logo';
@@ -56,92 +56,6 @@ export function LoginView() {
     return () => clearInterval(timer);
   }, [lockoutSeconds]);
 
-  const handleGoogleLogin = async () => {
-    if (!isSupabaseConfigured) {
-      toast.error('Configuração do Supabase ausente!');
-      return;
-    }
-    if (isLoggingIn || lockoutSeconds > 0) return;
-    setIsLoggingIn(true);
-    try {
-      const redirectUrl = `${window.location.origin}/auth-callback.html`;
-      console.log("[Auth] Google Login Redirect URL:", redirectUrl);
-      
-      // Open a blank window immediately to avoid popup blockers
-      const authWindow = window.open('about:blank', '_blank', 'width=600,height=700');
-      if (authWindow) {
-        authWindow.document.write('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div><h2>Conectando ao Google...</h2><p>Aguarde um momento.</p></div></body></html>');
-      }
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'google',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) {
-        authWindow?.close();
-        throw error;
-      }
-      
-      if (data?.url && authWindow) {
-        authWindow.location.href = data.url;
-      } else if (!data?.url) {
-        authWindow?.close();
-        toast.error('Não foi possível obter a URL de autenticação.');
-      }
-    } catch (error: any) {
-      toast.error(`Erro: ${error.message}`);
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
-  const handleGithubLogin = async () => {
-    if (!isSupabaseConfigured) {
-      toast.error('Configuração do Supabase ausente!');
-      return;
-    }
-    if (isLoggingIn || lockoutSeconds > 0) return;
-    setIsLoggingIn(true);
-    try {
-      const redirectUrl = `${window.location.origin}/auth-callback.html`;
-      console.log("[Auth] GitHub Login Redirect URL:", redirectUrl);
-      
-      // Open a blank window immediately to avoid popup blockers
-      const authWindow = window.open('about:blank', '_blank', 'width=600,height=700');
-      if (authWindow) {
-        authWindow.document.write('<html><body style="display:flex;justify-content:center;align-items:center;height:100vh;font-family:sans-serif;"><div><h2>Conectando ao GitHub...</h2><p>Aguarde um momento.</p></div></body></html>');
-      }
-
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: redirectUrl,
-          skipBrowserRedirect: true,
-        },
-      });
-
-      if (error) {
-        authWindow?.close();
-        throw error;
-      }
-      
-      if (data?.url && authWindow) {
-        authWindow.location.href = data.url;
-      } else if (!data?.url) {
-        authWindow?.close();
-        toast.error('Não foi possível obter a URL de autenticação.');
-      }
-    } catch (error: any) {
-      toast.error(`Erro: ${error.message}`);
-    } finally {
-      setIsLoggingIn(false);
-    }
-  };
-
   const handleEmailAuth = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -161,9 +75,7 @@ export function LoginView() {
       }
       setIsLoggingIn(true);
       try {
-        const { error } = await supabase.auth.resetPasswordForEmail(email, {
-          redirectTo: `${window.location.origin}/#type=recovery`,
-        });
+        const { error } = await AuthController.resetPassword(email);
         if (error) throw error;
         toast.success('E-mail de recuperação enviado! Verifique sua caixa de entrada.');
         setMode('login');
@@ -182,7 +94,7 @@ export function LoginView() {
       }
       setIsLoggingIn(true);
       try {
-        const { error } = await supabase.auth.updateUser({ password });
+        const { error } = await AuthController.updatePassword(password);
         if (error) throw error;
         toast.success('Senha atualizada com sucesso!');
         setMode('login');
@@ -222,33 +134,14 @@ export function LoginView() {
     try {
       if (mode === 'login') {
         console.log("[Auth] Attempting login...");
-        const { error } = await supabase.auth.signInWithPassword({
-          email: email.trim(),
-          password,
-        });
+        const { error } = await AuthController.signInWithPassword(email, password);
         if (error) throw error;
         console.log("[Auth] Login successful");
         toast.success('Login realizado com sucesso!');
       } else if (mode === 'register') {
         console.log("[Auth] Attempting registration for:", email);
-        const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-          email: email.trim(),
-          password,
-          options: {
-            data: {
-              full_name: name,
-            },
-            emailRedirectTo: window.location.origin,
-          },
-        });
+        const { data: signUpData, error: signUpError } = await AuthController.signUp(email, password, name);
         
-        console.log("[Auth] SignUp response received:", { 
-          user: signUpData?.user?.id, 
-          identities: signUpData?.user?.identities?.length,
-          session: !!signUpData?.session,
-          error: signUpError?.message 
-        });
-
         if (signUpError) {
           console.error("[Auth] SignUp error:", signUpError);
           throw signUpError;
@@ -317,7 +210,7 @@ export function LoginView() {
             <Logo size={72} />
           </div>
           <div>
-            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">LabLend</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-900 tracking-tight leading-tight">LanMaker</h1>
             <p className="text-slate-500 text-xs sm:text-sm font-medium">Gestão Inteligente de Laboratórios</p>
           </div>
         </div>
@@ -438,35 +331,6 @@ export function LoginView() {
           )}
         </form>
 
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-slate-100"></div>
-          </div>
-          <div className="relative flex justify-center text-xs uppercase">
-            <span className="bg-white px-4 text-slate-400 font-bold">Ou</span>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <button 
-            onClick={handleGoogleLogin}
-            disabled={isLoggingIn || lockoutSeconds > 0}
-            className="flex items-center justify-center gap-3 bg-white border border-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed text-xs sm:text-sm"
-          >
-            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="Google" referrerPolicy="no-referrer" />
-            {lockoutSeconds > 0 ? `Bloqueado` : 'Google'}
-          </button>
-
-          <button 
-            onClick={handleGithubLogin}
-            disabled={isLoggingIn || lockoutSeconds > 0}
-            className="flex items-center justify-center gap-3 bg-white border border-slate-100 text-slate-600 py-3 rounded-xl font-bold hover:bg-slate-50 transition-all active:scale-95 disabled:opacity-70 disabled:cursor-not-allowed text-xs sm:text-sm"
-          >
-            <Github className="w-4 h-4" />
-            {lockoutSeconds > 0 ? `Bloqueado` : 'GitHub'}
-          </button>
-        </div>
-
         {lockoutSeconds > 0 && (
           <motion.div 
             initial={{ opacity: 0 }}
@@ -492,7 +356,7 @@ export function LoginView() {
 
         <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100 space-y-2">
           <p className="text-[11px] text-amber-700 leading-relaxed">
-            <span className="font-bold">Atenção:</span> O Supabase exige confirmação de e-mail por padrão. Se você não receber o e-mail, verifique o <span className="font-bold">Spam</span>.
+            <span className="font-bold">Atenção:</span> O LanMaker exige confirmação de e-mail por padrão. Se você não receber o e-mail, verifique o <span className="font-bold">Spam</span>.
           </p>
         </div>
       </motion.div>

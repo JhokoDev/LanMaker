@@ -34,6 +34,11 @@ export function UserViews() {
   const add = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!newUser.name || !newUser.document_id) return;
+
+    if (!/^\d{12}$/.test(newUser.document_id)) {
+      setErrorMsg('A matrícula deve conter exatamente 12 dígitos numéricos.');
+      return;
+    }
     
     setErrorMsg('');
     try {
@@ -79,8 +84,8 @@ export function UserViews() {
             <input required value={newUser.name} onChange={e => setNewUser({...newUser, name: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="Nome Completo" />
           </div>
           <div className="flex-2 md:w-48">
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Documento (RA/CPF)</label>
-            <input required value={newUser.document_id} onChange={e => setNewUser({...newUser, document_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500" placeholder="000000" />
+            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Matrícula (12 dígitos)</label>
+            <input required value={newUser.document_id} onChange={e => setNewUser({...newUser, document_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono" placeholder="000000000000" />
           </div>
           <div className="flex-1">
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Email</label>
@@ -97,7 +102,7 @@ export function UserViews() {
           <Search className="h-5 w-5 text-gray-400 mr-2" />
           <input 
             type="text" 
-            placeholder="Buscar por nome, documento ou email..." 
+            placeholder="Buscar por nome, matrícula ou email..." 
             value={term}
             onChange={e => setTerm(e.target.value)}
             className="bg-transparent border-none focus:ring-0 text-sm w-full outline-none"
@@ -109,7 +114,7 @@ export function UserViews() {
             <thead>
               <tr className="bg-gray-50 border-b border-gray-100 text-xs uppercase tracking-wider text-gray-500">
                 <th className="px-6 py-4 font-semibold">Nome</th>
-                <th className="px-6 py-4 font-semibold">Documento</th>
+                <th className="px-6 py-4 font-semibold">Matrícula</th>
                 <th className="px-6 py-4 font-semibold">Email</th>
               </tr>
             </thead>

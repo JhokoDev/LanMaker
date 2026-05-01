@@ -1,4 +1,4 @@
--- Supabase Schema for LabLend
+-- Supabase Schema for LanMaker
 
 -- Se você já havia criado as tabelas antigas, os comandos abaixo as apagarão (cuidado, isso apaga os dados existentes!):
 DROP TABLE IF EXISTS public.loans;
@@ -9,7 +9,7 @@ DROP TABLE IF EXISTS public.users;
 CREATE TABLE public.users (
   id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
   name text NOT NULL,
-  document_id text,
+  document_id text CHECK (document_id IS NULL OR document_id ~ '^\d{12}$'),
   email text,
   role text DEFAULT 'user'::text NOT NULL CHECK (role IN ('admin', 'user')),
   created_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL

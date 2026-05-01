@@ -143,7 +143,7 @@ export function LoanViews() {
             <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Usuário</label>
             <select required value={newLoan.user_id} onChange={e => setNewLoan({...newLoan, user_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
               <option value="">Selecione...</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.name} ({u.document_id})</option>)}
+              {users.map(u => <option key={u.id} value={u.id}>{u.name} (Mat.: {u.document_id})</option>)}
             </select>
           </div>
           <div className="w-32">

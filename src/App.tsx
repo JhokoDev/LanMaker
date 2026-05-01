@@ -11,6 +11,7 @@ import { EquipmentViews } from './views/EquipmentViews';
 import { UserViews } from './views/UserViews';
 import { LoanViews } from './views/LoanViews';
 import { ReportViews } from './views/ReportViews';
+import { ProfileView } from './views/ProfileView';
 import { AuthProvider, useAuth } from './hooks/useAuth';
 import { LoginView } from './views/LoginView';
 import { Toaster } from 'sonner';
@@ -44,6 +45,7 @@ function AppRoutes() {
           <Route path="notebooks" element={<ProtectedRoute reqAdmin><EquipmentViews /></ProtectedRoute>} />
           <Route path="users" element={<ProtectedRoute reqAdmin><UserViews /></ProtectedRoute>} />
           <Route path="loans" element={<LoanViews />} />
+          <Route path="profile" element={<ProtectedRoute><ProfileView /></ProtectedRoute>} />
           <Route path="reports" element={<ProtectedRoute reqAdmin><ReportViews /></ProtectedRoute>} />
           <Route path="*" element={<Navigate to="/" replace />} />
         </Route>

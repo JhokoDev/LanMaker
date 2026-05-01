@@ -30,7 +30,7 @@ export function Layout() {
           <div className="p-1.5 bg-teal-50 rounded-lg">
              <Laptop className="h-6 w-6" />
           </div>
-          <span className="text-xl font-bold text-slate-800">LabLend</span>
+          <span className="text-xl font-bold text-slate-800">LanMaker</span>
         </div>
         <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 -mr-2 text-gray-600 focus:outline-none">
           {sidebarOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -59,7 +59,7 @@ export function Layout() {
             </svg>
           </div>
           <div className="flex flex-col">
-            <span className="text-xl font-bold text-slate-800 leading-tight">LabLend</span>
+            <span className="text-xl font-bold text-slate-800 leading-tight">LanMaker</span>
             <span className="text-xs font-bold text-teal-600 uppercase tracking-wider">{isAdmin ? 'Administrador' : 'Área do Aluno'}</span>
           </div>
         </div>
@@ -87,10 +87,20 @@ export function Layout() {
         
         {/* Bottom Actions */}
         <div className="p-4 space-y-1.5 pb-6">
-          <button className="w-full flex items-center space-x-3 px-4 py-3 text-slate-600 hover:bg-slate-50 hover:text-slate-900 rounded-xl transition-colors font-semibold truncate">
+          <NavLink 
+            to="/profile"
+            onClick={() => setSidebarOpen(false)}
+            className={({ isActive }) => 
+              `w-full flex items-center space-x-3 px-4 py-3 rounded-xl transition-colors font-semibold truncate ${
+                isActive 
+                  ? 'bg-teal-50 text-teal-700' 
+                  : 'text-slate-600 hover:bg-slate-50 hover:text-slate-900'
+              }`
+            }
+          >
             <UserCircle className="h-5 w-5 flex-shrink-0" />
             <span className="text-[15px] truncate">{profile?.name || 'Meu Perfil'}</span>
-          </button>
+          </NavLink>
           
           <button onClick={signOut} className="w-full flex items-center space-x-3 px-4 py-3 text-red-500 hover:bg-red-50 rounded-xl transition-colors font-semibold">
             <LogOut className="h-5 w-5" />

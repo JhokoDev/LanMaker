@@ -1,7 +1,8 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, Session } from '@supabase/supabase-js';
-import { supabase } from '../lib/supabase';
 import { User as UserProfile } from '../models';
+import { AuthController } from '../controllers/AuthController';
+import { UserController } from '../controllers/UserController';
 
 interface AuthContextType {
   user: User | null;
@@ -9,6 +10,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   signOut: () => Promise<void>;
+  refreshProfile: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType>({
@@ -17,6 +19,7 @@ const AuthContext = createContext<AuthContextType>({
   session: null,
   loading: true,
   signOut: async () => {},
+  refreshProfile: async () => {},
 });
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -28,10 +31,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const loadProfile = async (userId: string, retries = 3) => {
     try {
       for (let i = 0; i < retries; i++) {
-        const { data, error } = await supabase.from('users').select('*').eq('id', userId).single();
-        console.log(`[useAuth] User profile loaded (attempt ${i + 1}):`, data, error);
-        if (!error && data) {
-          setProfile(data as UserProfile);
+        const data = await UserController.getById(userId);
+        console.log(`[useAuth] User profile loaded (attempt ${i + 1}):`, data);
+        if (data) {
+          setProfile(data);
           return;
         }
         // wait 500ms before retrying to allow trigger to finish
@@ -46,7 +49,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     // Check active session
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    AuthController.getSession().then(({ session }) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -57,7 +60,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+    const subscription = AuthController.onAuthStateChange((_event, session) => {
       setSession(session);
       setUser(session?.user ?? null);
       if (session?.user) {
@@ -74,11 +77,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    const { error } = await AuthController.signOut();
+    if (error) console.error('Error signing out:', error.message);
+  };
+
+  const refreshProfile = async () => {
+    if (user) {
+      await loadProfile(user.id, 1);
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ user, profile, session, loading, signOut }}>
+    <AuthContext.Provider value={{ user, profile, session, loading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
