@@ -25,4 +25,5 @@ export type Loan = {
   expected_return_at: string;
   returned_at?: string;
   status: 'active' | 'returned' | 'overdue';
+  purpose?: string;
 };

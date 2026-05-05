@@ -78,7 +78,8 @@ CREATE TABLE public.loans (
   borrowed_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
   expected_return_at timestamp with time zone NOT NULL,
   returned_at timestamp with time zone,
-  status text DEFAULT 'active'::text NOT NULL CHECK (status IN ('active', 'returned', 'overdue'))
+  status text DEFAULT 'active'::text NOT NULL CHECK (status IN ('active', 'returned', 'overdue')),
+  purpose text
 );
 
 ALTER TABLE public.loans ENABLE ROW LEVEL SECURITY;

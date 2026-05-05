@@ -20,7 +20,7 @@ export function LoanViews() {
 
   // Form
   const [isAdding, setIsAdding] = useState(false);
-  const [newLoan, setNewLoan] = useState({ user_id: '', equipment_id: '', hours: 2 });
+  const [newLoan, setNewLoan] = useState({ user_id: '', equipment_id: '', hours: 2, purpose: '' });
 
   useEffect(() => {
     load();
@@ -60,10 +60,11 @@ export function LoanViews() {
         equipment_id: newLoan.equipment_id,
         borrowed_at: borrowedAt.toISOString(),
         expected_return_at: expectedReturn.toISOString(),
+        purpose: newLoan.purpose || undefined,
       });
       
       setIsAdding(false);
-      setNewLoan({ user_id: '', equipment_id: '', hours: 2 });
+      setNewLoan({ user_id: '', equipment_id: '', hours: 2, purpose: '' });
       load();
     } catch (err: any) {
       console.error(err);
@@ -130,28 +131,36 @@ export function LoanViews() {
       )}
 
       {isAdding && (
-        <form onSubmit={add} className="bg-white p-5 rounded-2xl border border-teal-200 shadow-md flex flex-col md:flex-row gap-4 mb-6">
-          <div className="flex-1">
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Equipamento</label>
-            <select required value={newLoan.equipment_id} onChange={e => setNewLoan({...newLoan, equipment_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
-              <option value="">Selecione...</option>
-              {getAvailableEqs().map(e => <option key={e.id} value={e.id}>{e.equipment_type.toUpperCase()} - {e.asset_tag} - {e.model}</option>)}
-            </select>
-            {getAvailableEqs().length === 0 && <p className="text-red-500 text-xs mt-1">Nenhum equipamento disponível no banco de dados.</p>}
+        <form onSubmit={add} className="bg-white p-5 rounded-2xl border border-teal-200 shadow-md mb-6 space-y-4">
+          <div className="flex flex-col md:flex-row gap-4">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Equipamento</label>
+              <select required value={newLoan.equipment_id} onChange={e => setNewLoan({...newLoan, equipment_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+                <option value="">Selecione...</option>
+                {getAvailableEqs().map(e => <option key={e.id} value={e.id}>{e.equipment_type.toUpperCase()} - {e.asset_tag} - {e.model}</option>)}
+              </select>
+              {getAvailableEqs().length === 0 && <p className="text-red-500 text-xs mt-1">Nenhum equipamento disponível no banco de dados.</p>}
+            </div>
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Usuário</label>
+              <select required value={newLoan.user_id} onChange={e => setNewLoan({...newLoan, user_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
+                <option value="">Selecione...</option>
+                {users.map(u => <option key={u.id} value={u.id}>{u.name} (Mat.: {u.document_id})</option>)}
+              </select>
+            </div>
           </div>
-          <div className="flex-1">
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Usuário</label>
-            <select required value={newLoan.user_id} onChange={e => setNewLoan({...newLoan, user_id: e.target.value})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 bg-white">
-              <option value="">Selecione...</option>
-              {users.map(u => <option key={u.id} value={u.id}>{u.name} (Mat.: {u.document_id})</option>)}
-            </select>
-          </div>
-          <div className="w-32">
-            <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Tempo (Horas)</label>
-            <input type="number" min="1" max="12" required value={newLoan.hours} onChange={e => setNewLoan({...newLoan, hours: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500" />
-          </div>
-          <div className="flex items-end pb-1">
-            <button type="submit" className="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">Registrar</button>
+          <div className="flex flex-col md:flex-row gap-4 items-end">
+            <div className="flex-1">
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Finalidade (Opcional)</label>
+              <input type="text" maxLength={100} value={newLoan.purpose} onChange={e => setNewLoan({...newLoan, purpose: e.target.value})} placeholder="P. ex: Prova, Aula de Programação, etc." className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500" />
+            </div>
+            <div className="w-full md:w-32">
+              <label className="block text-xs font-semibold text-gray-600 uppercase mb-1">Tempo (Horas)</label>
+              <input type="number" min="1" max="12" required value={newLoan.hours} onChange={e => setNewLoan({...newLoan, hours: Number(e.target.value)})} className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500" />
+            </div>
+            <div className="w-full md:w-auto pb-0">
+              <button type="submit" className="w-full md:w-auto bg-teal-600 hover:bg-teal-700 text-white px-6 py-2 rounded-lg font-semibold transition-colors">Registrar</button>
+            </div>
           </div>
         </form>
       )}
@@ -164,6 +173,7 @@ export function LoanViews() {
                 <th className="px-6 py-4 font-semibold">Status</th>
                 <th className="px-6 py-4 font-semibold">Equipamento</th>
                 <th className="px-6 py-4 font-semibold">Usuário</th>
+                <th className="px-6 py-4 font-semibold">Finalidade</th>
                 <th className="px-6 py-4 font-semibold">Retirada</th>
                 <th className="px-6 py-4 font-semibold">Devolução Prev.</th>
                 <th className="px-6 py-4 font-semibold text-right">Ação</th>
@@ -171,9 +181,9 @@ export function LoanViews() {
             </thead>
             <tbody className="divide-y divide-gray-100 text-sm">
               {loading ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Buscando banco de dados...</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Buscando banco de dados...</td></tr>
               ) : loans.length === 0 ? (
-                <tr><td colSpan={6} className="px-6 py-8 text-center text-gray-500">Nenhum empréstimo registrado no banco.</td></tr>
+                <tr><td colSpan={7} className="px-6 py-8 text-center text-gray-500">Nenhum empréstimo registrado no banco.</td></tr>
               ) : (
                 loans.map(loan => {
                   const eq = getEquipment(loan.equipment_id);
@@ -185,6 +195,7 @@ export function LoanViews() {
                        {eq?.asset_tag || loan.equipment_id}
                     </td>
                     <td className="px-6 py-4 text-gray-700 font-medium">{getUserName(loan.user_id)}</td>
+                    <td className="px-6 py-4 text-gray-500 text-xs">{loan.purpose || '-'}</td>
                     <td className="px-6 py-4 text-gray-500 text-xs">
                       {format(new Date(loan.borrowed_at), "dd/MM/yy HH:mm")}
                       <br/>
